@@ -25,17 +25,21 @@
       <!-- Order Form -->
       <form @submit.prevent="submitOrder" class="space-y-6">
         <div>
-          <label for="email" class="block text-gray-300 text-sm font-semibold mb-2">
-            Email для чека
+          <label for="telegram_id" class="block text-gray-300 text-sm font-semibold mb-2">
+            Telegram ID для уведомлений
+            <span class="text-gray-500 text-xs">(например: 123456789)</span>
           </label>
           <input
-            type="email"
-            id="email"
-            v-model="orderForm.email"
+            type="text"
+            id="telegram_id"
+            v-model="orderForm.telegram_id"
             class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-            placeholder="your@email.com"
+            placeholder="123456789"
             required
           />
+          <p class="text-xs text-gray-400 mt-1">
+            💡 Как получить Telegram ID? Напишите боту @re_shop_notify_bot команду /start
+          </p>
         </div>
 
         <div>
@@ -118,18 +122,14 @@ const auth = useAuth();
 const router = useRouter();
 
 const orderForm = reactive({
-  email: auth.user?.email || '',
+  telegram_id: '',
   quantity: 1,
   comment: '',
 });
 
 const isSubmitting = ref(false);
 
-watch(() => auth.user?.email, (newEmail) => {
-  if (newEmail) {
-    orderForm.email = newEmail;
-  }
-}, { immediate: true });
+
 
 const close = () => {
   emit('close');
@@ -145,7 +145,7 @@ const submitOrder = async () => {
       product: props.product.id,
       quantity: orderForm.quantity,
       comment: orderForm.comment,
-      receipt_email: orderForm.email,
+      telegram_id: orderForm.telegram_id,
     };
     
     console.log('Sending payment request to /payments/ with data:', paymentData);

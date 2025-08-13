@@ -173,13 +173,13 @@ STATIC_URL = 'static/'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Yookassa настройки
-YOOKASSA_SHOP_ID = 'your_shop_id_here'  # Замените на ваш Shop ID
-YOOKASSA_SECRET_KEY = 'your_secret_key_here'  # Замените на ваш Secret Key
+YOOKASSA_SHOP_ID = '1133699'  # Ваш Shop ID
+YOOKASSA_SECRET_KEY = 'test_TmU3VFb3BZ0dlFpT44rh1NhvmGts0qNNkSEty0ufePA'  # Ваш Secret Key
 
-# Настройки для разработки (можно использовать тестовые данные)
+# Настройки для разработки (используются тестовые данные)
 if DEBUG:
-    YOOKASSA_SHOP_ID = 'your_test_shop_id'  # Тестовый Shop ID
-    YOOKASSA_SECRET_KEY = 'your_test_secret_key'  # Тестовый Secret Key
+    YOOKASSA_SHOP_ID = '1133699'  # Тестовый Shop ID
+    YOOKASSA_SECRET_KEY = 'test_TmU3VFb3BZ0dlFpT44rh1NhvmGts0qNNkSEty0ufePA'  # Тестовый Secret Key
 
 LOGGING = {
     'version': 1,
@@ -208,3 +208,5 @@ LOGGING = {
         },
     },
 }
+
+

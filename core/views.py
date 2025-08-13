@@ -21,6 +21,10 @@ from .serializers import (
 )
 from .permissions import IsSeller, IsBuyer, IsSellerOrReadOnly, IsOrderOwnerOrSeller, HasPurchasedProduct
 
+from django.shortcuts import redirect
+from django.http import HttpResponse
+from django.views import View
+
 
 class CustomLoginView(TokenObtainPairView):
     """
@@ -53,7 +57,7 @@ class RegisterViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
     POST /api/auth/register
     """
     serializer_class = RegisterSerializer
-    permission_classes = [AllowAny()]
+    permission_classes = [AllowAny]
 
 
 class ProductPagination(PageNumberPagination):
@@ -458,6 +462,8 @@ class UserViewSet(viewsets.ViewSet):
     def me(self, request):
         serializer = UserSerializer(request.user)
         return Response(serializer.data)
+    
+
 
 
 class PaymentViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
@@ -533,7 +539,7 @@ class PaymentViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
                     },
                     "confirmation": {
                         "type": "redirect",
-                        "return_url": f"{request.build_absolute_uri('/')}order-success/{order.id}"
+                        "return_url": f"http://localhost:8000/success/{order.id}/"
                     },
                     "capture": True,
                     "description": description,
@@ -545,7 +551,7 @@ class PaymentViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
                 
                 logger.info("Creating Yookassa payment...")
                 
-                payment = Payment.create(payment_data, idempotence_key=str(order.id))
+                payment = Payment.create(payment_data, idempotency_key=str(order.id))
                 
                 logger.info(f"Yookassa payment created successfully: {payment.id}")
                 logger.info("Payment confirmation URL generated")
@@ -602,7 +608,7 @@ class PaymentViewSet(mixins.CreateModelMixin, viewsets.GenericViewSet):
 
 
 class PaymentWebhookViewSet(viewsets.ViewSet):
-    permission_classes = [AllowAny()]
+    permission_classes = [AllowAny]
 
     @action(detail=False, methods=['post'], url_path='yookassa')
     def yookassa_webhook(self, request):
@@ -638,3 +644,75 @@ class PaymentWebhookViewSet(viewsets.ViewSet):
         except Exception as e:
             print(f"Error processing Yookassa webhook: {e}")
             return Response({"status": "error", "message": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class OrderSuccessRedirectView(View):
+    """
+    Перенаправляет пользователя на frontend страницу успешной оплаты
+    """
+    def get(self, request, order_id):
+        # Перенаправляем на frontend страницу успешной оплаты
+        frontend_url = f"http://localhost:5173/order-success/{order_id}"
+        return redirect(frontend_url)
+
+
+
+
+
+class TelegramAuthViewSet(viewsets.ViewSet):
+    """
+    Авторизация через Telegram
+    """
+    permission_classes = [AllowAny]
+    
+    @action(detail=False, methods=['post'], url_path='login')
+    def telegram_login(self, request):
+        """
+        Авторизация через Telegram
+        """
+        try:
+            telegram_data = request.data
+            logger.info(f"Telegram auth request received: {telegram_data}")
+            
+            # Проверяем данные от Telegram
+            verified_data = telegram_auth_service.verify_telegram_data(telegram_data)
+            if not verified_data:
+                return Response(
+                    {'error': 'Invalid Telegram data'}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            # Получаем или создаем пользователя
+            user = telegram_auth_service.get_or_create_user(verified_data)
+            if not user:
+                return Response(
+                    {'error': 'Failed to create/get user'}, 
+                    status=status.HTTP_500_INTERNAL_SERVER_ERROR
+                )
+            
+            # Генерируем JWT токены
+            from rest_framework_simplejwt.tokens import RefreshToken
+            refresh = RefreshToken.for_user(user)
+            
+            # Отправляем уведомление в Telegram
+            telegram_auth_service.send_auth_success_message(
+                verified_data['telegram_id'], 
+                user.username
+            )
+            
+            # Возвращаем токены и информацию о пользователе
+            response_data = {
+                'access': str(refresh.access_token),
+                'refresh': str(refresh),
+                'user': UserSerializer(user).data
+            }
+            
+            logger.info(f"Telegram auth successful for user: {user.username}")
+            return Response(response_data, status=status.HTTP_200_OK)
+            
+        except Exception as e:
+            logger.error(f"Error in Telegram auth: {e}")
+            return Response(
+                {'error': 'Internal server error'}, 
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )

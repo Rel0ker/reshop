@@ -40,6 +40,8 @@ export const useAuth = defineStore("auth", {
       localStorage.setItem("role", role);
     },
 
+
+
     logout() {
       this.token = null;
       this.role = null;

@@ -79,6 +79,12 @@ const router = createRouter({
       name: "test-search",
       component: () => import("../pages/TestSearch.vue"),
     },
+    {
+      path: "/success/:id",
+      name: "order-success",
+      component: () => import("../pages/OrderSuccess.vue"),
+      props: true
+    },
   ]
 });
 
