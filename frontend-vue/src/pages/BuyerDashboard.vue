@@ -69,21 +69,36 @@ onMounted(async () => {
 });
 
 async function fetchOrders() {
-  const { data } = await api.get("/orders/");
-  orders.value = data.map((order: Order) => ({
-    ...order,
-    product: {
-      ...order.product,
-      title: order.product.title || `Товар без названия`,
-    },
-  })).sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+  try {
+    const { data } = await api.get("/orders/mine/");
+    console.log('Orders data:', data);
+    
+    // Проверяем, что data является массивом
+    if (Array.isArray(data)) {
+      orders.value = data.map((order: Order) => ({
+        ...order,
+        product: {
+          ...order.product,
+          title: order.product.title || `Товар без названия`,
+        },
+      })).sort((a: any, b: any) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+    } else {
+      console.error('Orders data is not an array:', data);
+      orders.value = [];
+    }
+  } catch (error) {
+    console.error('Error fetching orders:', error);
+    orders.value = [];
+  }
 }
 
 const getStatusText = (status: string) => {
   const statusMap: Record<string, string> = {
-    'pending': 'Ожидание',
+    'pending': 'В ожидании оплаты',
     'paid': 'Оплачен',
-    'delivered': 'Доставлен',
+    'delivered': 'Завершен',
+    'payment_rejected': 'Отклонен платежной системой',
+    'seller_rejected': 'Отклонен продавцом',
     'canceled': 'Отменен'
   };
   return statusMap[status] || status;
@@ -102,7 +117,9 @@ const getStatusColor = (status: string) => {
     'pending': 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900/30 dark:text-yellow-400',
     'paid': 'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-400',
     'delivered': 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400',
-    'canceled': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+    'payment_rejected': 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400',
+    'seller_rejected': 'bg-red-500 text-white dark:bg-red-600',
+    'canceled': 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400'
   };
   return colorMap[status] || 'bg-gray-100 text-gray-800 dark:bg-gray-900/30 dark:text-gray-400';
 };
@@ -160,10 +177,10 @@ const getStatusColor = (status: string) => {
         <div class="bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-2xl p-6 border border-gray-200/50 dark:border-slate-700/50 shadow-lg hover:shadow-xl transition-all duration-300 transform hover:-translate-y-1">
           <div class="flex items-center justify-between">
             <div>
-              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Завершенные</p>
+              <p class="text-sm font-medium text-gray-600 dark:text-gray-400">Завершенные заказы</p>
               <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ orders.filter(o => o.status === 'delivered').length }}</p>
             </div>
-            <div class="w-12 h-12 bg-gradient-to-r from-purple-500 to-pink-600 rounded-xl flex items-center justify-center">
+            <div class="w-12 h-12 bg-gradient-to-r from-blue-500 to-indigo-600 rounded-xl flex items-center justify-center">
               <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
               </svg>
@@ -263,10 +280,18 @@ const getStatusColor = (status: string) => {
             </div>
 
             <!-- Action Button -->
-            <div class="p-6 pt-0">
+            <div class="p-6 pt-0" v-if="order.status !== 'seller_rejected' && order.status !== 'payment_rejected' && order.status !== 'canceled'">
               <button class="w-full py-3 bg-gradient-to-r from-gray-100 to-gray-200 dark:from-slate-700 dark:to-slate-600 text-gray-700 dark:text-gray-300 rounded-xl font-medium hover:from-purple-100 hover:to-blue-100 dark:hover:from-purple-800 dark:hover:to-blue-800 hover:text-purple-700 dark:hover:text-purple-400 transition-all duration-300 transform hover:scale-105">
                 Подробнее
               </button>
+            </div>
+            
+            <!-- Статус для отклоненных заказов -->
+            <div v-else class="p-6 pt-0">
+              <div class="text-center py-3 px-4 rounded-lg font-medium text-sm"
+                   :class="getStatusColor(order.status)">
+                {{ getStatusText(order.status) }}
+              </div>
             </div>
           </div>
         </div>
@@ -409,8 +434,8 @@ const getStatusColor = (status: string) => {
             </div>
           </div>
 
-          <!-- Usage Instructions -->
-          <div v-if="selectedOrder.product.usage_instructions" class="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl border border-yellow-200/50 dark:border-yellow-700/50 p-6">
+          <!-- Usage Instructions - только для оплаченных заказов -->
+          <div v-if="selectedOrder.product.usage_instructions && (selectedOrder.status === 'paid' || selectedOrder.status === 'delivered')" class="bg-gradient-to-r from-yellow-50 to-orange-50 dark:from-yellow-900/20 dark:to-orange-900/20 rounded-2xl border border-yellow-200/50 dark:border-yellow-700/50 p-6">
             <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
               <svg class="w-5 h-5 mr-2 text-yellow-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
@@ -418,6 +443,41 @@ const getStatusColor = (status: string) => {
               Инструкции по использованию
             </h3>
             <div class="prose prose-lg max-w-none dark:prose-invert" v-html="renderedUsageInstructions(selectedOrder.product.usage_instructions)"></div>
+          </div>
+          
+          <!-- Информация для отклоненных заказов -->
+          <div v-if="selectedOrder.status === 'seller_rejected' || selectedOrder.status === 'payment_rejected'" class="bg-gradient-to-r from-red-50 to-pink-50 dark:from-red-900/20 dark:to-pink-900/20 rounded-2xl border border-red-200/50 dark:border-red-700/50 p-6">
+            <h3 class="text-xl font-semibold text-gray-900 dark:text-white mb-4 flex items-center">
+              <svg class="w-5 h-5 mr-2 text-red-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+              Почему так могло получиться?
+            </h3>
+            <div class="space-y-3 text-gray-700 dark:text-gray-300">
+              <div v-if="selectedOrder.status === 'seller_rejected'" class="p-4 bg-red-100 dark:bg-red-900/30 rounded-lg border-l-4 border-red-500">
+                <p class="font-medium text-red-800 dark:text-red-200 mb-2">Заказ отклонен продавцом</p>
+                <p class="text-sm">Возможные причины:</p>
+                <ul class="list-disc list-inside mt-2 text-sm space-y-1">
+                  <li>Товар временно недоступен</li>
+                  <li>Проблемы с оплатой</li>
+                  <li>Технические сложности</li>
+                  <li>Недостаточная информация в заказе</li>
+                </ul>
+                <p class="mt-3 text-sm font-medium">Рекомендуем связаться с продавцом для уточнения деталей.</p>
+              </div>
+              
+              <div v-if="selectedOrder.status === 'payment_rejected'" class="p-4 bg-red-100 dark:bg-red-900/30 rounded-lg border-l-4 border-red-500">
+                <p class="font-medium text-red-800 dark:text-red-200 mb-2">Платеж отклонен платежной системой</p>
+                <p class="text-sm">Возможные причины:</p>
+                <ul class="list-disc list-inside mt-2 text-sm space-y-1">
+                  <li>Недостаточно средств на карте</li>
+                  <li>Банк заблокировал операцию</li>
+                  <li>Проблемы с 3D Secure</li>
+                  <li>Технические сбои платежной системы</li>
+                </ul>
+                <p class="mt-3 text-sm font-medium">Попробуйте повторить оплату или используйте другую карту.</p>
+              </div>
+            </div>
           </div>
         </div>
       </div>

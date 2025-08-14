@@ -10,6 +10,7 @@ const router = createRouter({
     component: () => import('./pages/OrderSuccess.vue'),
     props: true,
   },
+  
   {
       path: "/",
       component: () => import("./pages/Home.vue"),
@@ -49,11 +50,6 @@ const router = createRouter({
       name: "Favorites",
       component: () => import('./pages/Favorites.vue'),
     meta: { requiresAuth: true },
-  },
-  {
-    path: '/order-success', // Keep this for backward compatibility if needed, or remove if not used
-    name: 'OrderSuccess',
-    component: () => import('./pages/OrderSuccess.vue'),
   },
   {
     path: "/product/:id",

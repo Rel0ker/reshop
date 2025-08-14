@@ -444,6 +444,90 @@ class OrderViewSet(viewsets.ModelViewSet):
         
         return Response(response_data, status=status.HTTP_201_CREATED, headers=headers)
 
+    @action(detail=False, methods=['get'], permission_classes=[permissions.IsAuthenticated])
+    def mine(self, request):
+        """
+        Возвращает заказы для текущего аутентифицированного пользователя
+        """
+        user = request.user
+        if user.role == "seller":
+            # Для продавца - заказы на его товары
+            orders = Order.objects.filter(product__seller=user).order_by('-created_at')
+        else:
+            # Для покупателя - его заказы
+            orders = Order.objects.filter(buyer=user).order_by('-created_at')
+        
+        serializer = self.get_serializer(orders, many=True, context={'request': request})
+        return Response(serializer.data)
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def confirm(self, request, pk=None):
+        """
+        Продавец подтверждает заказ (меняет статус на 'paid')
+        """
+        try:
+            order = self.get_object()
+            
+            # Проверяем, что пользователь является продавцом этого товара
+            if request.user.role != "seller" or order.product.seller != request.user:
+                return Response(
+                    {"error": "У вас нет прав для подтверждения этого заказа"}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Проверяем, что заказ в статусе "pending"
+            if order.status != "pending":
+                return Response(
+                    {"error": "Можно подтверждать только заказы в ожидании оплаты"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            order.status = "paid"
+            order.save()
+            
+            serializer = self.get_serializer(order)
+            return Response(serializer.data)
+            
+        except Order.DoesNotExist:
+            return Response(
+                {"error": "Заказ не найден"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+    @action(detail=True, methods=['post'], permission_classes=[permissions.IsAuthenticated])
+    def reject(self, request, pk=None):
+        """
+        Продавец отклоняет заказ (меняет статус на 'seller_rejected')
+        """
+        try:
+            order = self.get_object()
+            
+            # Проверяем, что пользователь является продавцом этого товара
+            if request.user.role != "seller" or order.product.seller != request.user:
+                return Response(
+                    {"error": "У вас нет прав для отклонения этого заказа"}, 
+                    status=status.HTTP_403_FORBIDDEN
+                )
+            
+            # Проверяем, что заказ в статусе "pending"
+            if order.status != "pending":
+                return Response(
+                    {"error": "Можно отклонять только заказы в ожидании оплаты"}, 
+                    status=status.HTTP_400_BAD_REQUEST
+                )
+            
+            order.status = "seller_rejected"
+            order.save()
+            
+            serializer = self.get_serializer(order)
+            return Response(serializer.data)
+            
+        except Order.DoesNotExist:
+            return Response(
+                {"error": "Заказ не найден"}, 
+                status=status.HTTP_404_NOT_FOUND
+            )
+
 
 import requests
 from django.conf import settings

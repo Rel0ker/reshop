@@ -5,6 +5,7 @@ import { api } from '../api';
 import OrderModal from '../components/OrderModal.vue';
 import SortDropdown from '../components/SortDropdown.vue';
 import noImage from '../assets/no-image.png';
+import ProductCardNew from '@/components/ProductCardNew.vue';
 
 interface Product {
   id: string;
@@ -162,7 +163,7 @@ const sortedProducts = computed(() => {
       <div class="relative container mx-auto px-4 py-16">
         <div class="text-center max-w-4xl mx-auto">
           <h1 class="text-5xl md:text-6xl font-bold text-gray-900 dark:text-white mb-6 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 bg-clip-text text-transparent">
-            Цифровые товары
+            Популярные товары
           </h1>
           <p class="text-xl text-gray-600 dark:text-gray-300 mb-8 leading-relaxed">
             Откройте для себя уникальные цифровые продукты от талантливых создателей
@@ -233,94 +234,13 @@ const sortedProducts = computed(() => {
 
       <!-- Products Grid -->
       <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 mt-10">
-        <div
+        <ProductCardNew
           v-for="(product, index) in sortedProducts"
           :key="product.id"
+          :product="product"
           @click="goToProduct(product.id)"
-          class="group bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl overflow-hidden hover:border-purple-500/50 transition-all duration-500 hover:shadow-2xl hover:shadow-2xl hover:shadow-purple-500/20 transform hover:-translate-y-2 cursor-pointer"
-          :style="{ animationDelay: `${index * 0.1}s` }"
-        >
-          <!-- Product Image -->
-          <div class="relative aspect-square overflow-hidden">
-            <img
-              :src="product.images && product.images.length > 0 ? product.images[0].image : (product.image_url || noImage)"
-              :alt="product.title"
-              class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 ease-out"
-            />
-            <div class="absolute inset-0 bg-gradient-to-t from-black/60 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500"></div>
-            
-            <!-- Price Badge -->
-            <div class="absolute top-4 right-4 bg-purple-600/90 backdrop-blur-sm px-3 py-2 rounded-full shadow-lg">
-              <span class="text-white font-bold text-lg">{{ product.price }} ₽</span>
-            </div>
-
-            <!-- Status Badge -->
-            <div class="absolute top-4 left-4">
-              <span
-                :class="[
-                  'px-3 py-1 rounded-full text-xs font-semibold',
-                  product.quantity > 0
-                    ? 'bg-green-500/90 text-white'
-                    : 'bg-red-500/90 text-white'
-                ]"
-              >
-                {{ product.quantity > 0 ? 'В наличии' : 'Нет в наличии' }}
-              </span>
-            </div>
-          </div>
-
-          <!-- Product Content -->
-          <div class="p-6">
-            <h3 class="text-xl font-bold text-gray-900 dark:text-white mb-3 line-clamp-2 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors duration-300 flex items-center gap-2">
-              {{ product.title }}
-              <span class="text-xs text-gray-500 dark:text-gray-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300">👆</span>
-            </h3>
-            
-            <p class="text-gray-600 dark:text-gray-400 text-sm mb-4 line-clamp-3 leading-relaxed">
-              {{ product.description }}
-            </p>
-
-            <!-- Seller Info -->
-            <div v-if="product.seller_info" class="mb-4 p-3 bg-gray-50 dark:bg-white/5 rounded-xl border border-gray-200 dark:border-white/10">
-              <p class="text-xs text-gray-500 dark:text-gray-400 mb-1">От продавца:</p>
-              <p class="text-sm text-gray-700 dark:text-gray-300 line-clamp-2">{{ product.seller_info }}</p>
-            </div>
-
-            <!-- Seller Rating -->
-            <div v-if="product.seller_rating" class="mb-4 flex items-center gap-2">
-              <div class="flex items-center">
-                <span class="text-sm text-gray-600 dark:text-gray-400 mr-2">Оценка продавца:</span>
-                <div class="flex items-center">
-                  <span class="text-yellow-500 text-lg mr-1">⭐</span>
-                  <span class="text-sm font-semibold text-gray-900 dark:text-white">{{ product.seller_rating }}/5</span>
-                </div>
-              </div>
-            </div>
-
-            <!-- Action Button -->
-            <div class="flex justify-between items-center">
-              <div class="text-sm text-gray-600 dark:text-gray-400">
-                Количество: <span class="text-purple-600 dark:text-purple-400 font-semibold">{{ product.quantity }}</span>
-              </div>
-              
-              <button
-                @click.stop="openOrderModal(product)"
-                :disabled="product.quantity === 0"
-                :class="[
-                  'px-6 py-3 rounded-xl font-semibold transition-all duration-300 transform group-hover:scale-105',
-                  product.quantity > 0
-                    ? 'bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white shadow-lg shadow-purple-600/25'
-                    : 'bg-gray-600 text-gray-400 cursor-not-allowed'
-                ]"
-              >
-                {{ product.quantity === 0 ? 'Нет в наличии' : 'Купить' }}
-              </button>
-            </div>
-          </div>
-
-          <!-- Hover Overlay -->
-          <div class="absolute inset-0 bg-gradient-to-t from-purple-600/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none"></div>
-        </div>
+          @order="openOrderModal(product)"
+        />
       </div>
 
       <!-- Loading State -->

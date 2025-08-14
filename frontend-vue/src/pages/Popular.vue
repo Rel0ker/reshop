@@ -12,17 +12,11 @@
       </h1>
 
       <div v-if="products.length > 0" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8">
-        <div v-for="product in products" :key="product.id" class="group bg-gray-900 border border-gray-700 rounded-2xl shadow-lg overflow-hidden flex flex-col transform hover:scale-105 transition-transform duration-300">
-          <img :src="product.images.length > 0 ? product.images[0].image : noImage" alt="Product Image" class="w-full aspect-square object-cover"/>
-          <div class="p-4 flex flex-col flex-grow">
-            <h3 class="text-lg font-semibold text-white mb-2 flex-grow min-h-[56px]">{{ product.title }}</h3>
-            <p class="text-2xl font-bold text-green-400 mb-4">{{ product.price }} ₽</p>
-            <div class="flex items-center text-gray-400 text-sm mt-auto pt-2 border-t border-gray-600">
-              <span>Продавец:</span>
-              <span class="ml-2 font-medium text-gray-300 truncate">{{ product.seller.email }}</span>
-            </div>
-          </div>
-        </div>
+        <ProductCardNew 
+          v-for="product in products" 
+          :key="product.id" 
+          :product="product"
+        />
       </div>
       <div v-else class="text-center py-16 text-gray-500">
         <p>Загрузка товаров или здесь пока пусто...</p>
@@ -37,7 +31,14 @@
   </div>
 </template>
 
-<style>
+<style scoped>
+.line-clamp-2 {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
 @keyframes pulse-slow {
   50% {
     transform: scale(1.02);
@@ -53,6 +54,7 @@
 import { ref, onMounted } from 'vue';
 import { api } from '../api';
 import noImage from '../assets/no-image.png';
+import ProductCardNew from '@/components/ProductCardNew.vue';
 
 interface Seller {
   id: string;
@@ -70,6 +72,7 @@ interface Product {
   title: string;
   description: string;
   price: string;
+  quantity?: number;
   seller: Seller;
   images: ProductImage[];
 }

@@ -5,12 +5,11 @@
   >
     <div class="relative bg-slate-800 dark:bg-slate-900 rounded-2xl shadow-lg hover:shadow-2xl transform hover:-translate-y-2 transition-all duration-300 overflow-hidden border border-slate-700 dark:border-slate-600">
       <!-- Верхняя секция - основная информация -->
-      <div class="p-6 pb-4">
+      <div class=" ">
         <!-- Верхние теги -->
-        <div class="flex items-center justify-between mb-4">
-          <!-- Тег наличия -->
-          <div class="bg-green-500 text-white px-3 py-1.5 rounded-full text-sm font-medium">
-            В наличии
+        <div class="flex items-right justify-between mb-4 fixed p-3 w-full">
+          <div >
+            
           </div>
           <!-- Цена -->
           <div class="bg-purple-600 text-white px-3 py-1.5 rounded-full text-lg font-bold">
@@ -18,13 +17,10 @@
           </div>
         </div>
         
-        <!-- Название товара -->
-        <h3 class="text-xl font-bold text-white mb-4 leading-tight">
-          {{ product.title }}
-        </h3>
+        
         
         <!-- Изображение товара (на весь блок) -->
-        <div class="w-full h-32 mb-4 rounded-lg overflow-hidden bg-slate-700 dark:bg-slate-600">
+        <div class="w-full h-full  overflow-hidden bg-slate-700 dark:bg-slate-600">
           <img 
             v-if="hasImage"
             :src="imageSource" 

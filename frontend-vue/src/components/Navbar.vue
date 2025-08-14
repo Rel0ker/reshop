@@ -1,6 +1,6 @@
 <template>
   <nav class="fixed top-0 left-0 right-0 z-50 bg-white/90 dark:bg-slate-900/90 backdrop-blur-xl border-b border-gray-200/50 dark:border-slate-700/50 shadow-lg">
-    <div class="container mx-auto px-4">
+    <div class="container mx-auto px-2 sm:px-4">
       <div class="flex items-center justify-between h-16">
         <!-- Logo -->
         <router-link to="/" class="flex items-center space-x-3 group">
@@ -72,7 +72,7 @@
           
           <!-- Dropdown с результатами поиска -->
           <div v-if="searchQuery && (isSearchFocused || searchResults.length > 0)"
-               class="absolute top-full left-1/2 w-full max-w-md mt-3 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden transform -translate-x-1/2 transition-all duration-500 ease-out animate-in slide-in-from-top-2">
+               class="absolute top-full left-1/2 w-full max-w-md mt-2 bg-white dark:bg-slate-800 border border-gray-200 dark:border-slate-700 rounded-2xl shadow-2xl z-50 overflow-hidden transform -translate-x-1/2 transition-all duration-500 ease-out animate-in slide-in-from-top-2">
             <!-- Заголовок -->
             <div class="px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-b border-gray-200 dark:border-slate-600">
               <div class="flex items-center justify-between">
@@ -97,39 +97,44 @@
               <div v-else-if="searchResults.length > 0">
                 <div v-for="(product, index) in searchResults" :key="product.id" 
                      @click="selectSearchResult(product)" 
-                     class="group p-4 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 cursor-pointer transition-all duration-300 border-b border-gray-100 dark:border-slate-600 last:border-b-0 transform hover:scale-[1.02] hover:translate-x-1"
+                     class="group p-4 hover:bg-slate-700 dark:hover:bg-slate-700 cursor-pointer transition-all duration-300 border-b border-slate-600 dark:border-slate-600 last:border-b-0 transform hover:scale-[1.02] hover:translate-x-1 bg-slate-800 dark:bg-slate-800"
                      :style="{ animationDelay: `${index * 100}ms` }">
                   
                   <div class="flex items-start gap-3">
                     <!-- Изображение товара -->
-                    <div class="w-12 h-12 rounded-xl overflow-hidden bg-gradient-to-br from-purple-100 to-pink-100 dark:from-purple-800 dark:to-pink-800 flex-shrink-0 shadow-sm">
+                    <div class="w-12 h-12 rounded-xl overflow-hidden bg-slate-700 dark:bg-slate-600 flex-shrink-0 shadow-sm">
                       <img 
-                        :src="product.images && product.images.length > 0 ? product.images[0].image : (product.image_url || '/no-image.png')" 
+                        v-if="product.images && product.images.length > 0"
+                        :src="product.images[0].image" 
                         :alt="product.title"
                         class="w-full h-full object-cover"
-                        @error="(event) => { const target = event.target as HTMLImageElement; if (target) target.src = '/no-image.png'; }"
                       />
+                      <div v-else class="w-full h-full bg-slate-600 dark:bg-slate-700 flex items-center justify-center">
+                        <svg class="w-4 h-4 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                        </svg>
+                      </div>
                     </div>
                     
                     <!-- Информация о товаре -->
                     <div class="flex-1 min-w-0">
-                      <h4 class="font-semibold text-gray-900 dark:text-white text-sm leading-tight mb-1 group-hover:text-purple-600 dark:group-hover:text-purple-400 transition-colors line-clamp-2">
+                      <h4 class="font-semibold text-white text-sm leading-tight mb-1 group-hover:text-purple-400 transition-colors line-clamp-2">
                         {{ product.title }}
                       </h4>
-                      <p class="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mb-2">
+                      <p class="text-xs text-gray-300 line-clamp-1 mb-2">
                         {{ product.description }}
                       </p>
                       
                       <!-- Цена и статус -->
                       <div class="flex items-center justify-between">
-                        <span class="text-lg font-bold bg-gradient-to-r from-purple-600 to-pink-600 bg-clip-text text-transparent">
+                        <span class="text-lg font-bold text-purple-400">
                           {{ product.price }} ₽
                         </span>
                         <span :class="[
                           'px-3 py-1.5 rounded-full text-xs font-semibold shadow-sm',
                           product.quantity > 0 
-                            ? 'bg-green-100 text-green-800 dark:bg-green-900/30 dark:text-green-400'
-                            : 'bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400'
+                            ? 'bg-green-500 text-white'
+                            : 'bg-red-500 text-white'
                         ]">
                           {{ product.quantity > 0 ? 'В наличии' : 'Нет в наличии' }}
                         </span>
@@ -137,7 +142,7 @@
                     </div>
                     
                     <!-- Иконка перехода -->
-                    <div class="w-5 h-5 text-gray-400 group-hover:text-purple-500 transition-colors flex-shrink-0 transform group-hover:translate-x-1">
+                    <div class="w-5 h-5 text-gray-400 group-hover:text-purple-400 transition-colors flex-shrink-0 transform group-hover:translate-x-1">
                       <svg class="w-full h-full" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
                       </svg>
@@ -250,19 +255,34 @@
           
           <!-- Auth Buttons -->
           <div v-else class="flex items-center space-x-3">
-            <router-link
-              to="/login"
-              class="px-4 py-2 text-purple-600 dark:text-purple-400 font-medium hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-300 hover:scale-105"
-            >
-              Войти
-            </router-link>
-            <router-link
-              to="/register"
-              class="relative px-6 py-2 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white font-medium rounded-2xl hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 overflow-hidden group"
-            >
-              <span class="relative z-10">Регистрация</span>
-              <div class="absolute inset-0 bg-gradient-to-r from-purple-700 via-pink-700 to-rose-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-            </router-link>
+            <!-- Desktop Auth Buttons -->
+            <div class="hidden md:flex items-center space-x-3">
+              <router-link
+                to="/login"
+                class="px-4 py-2 text-purple-600 dark:text-purple-400 font-medium hover:text-purple-700 dark:hover:text-purple-300 transition-all duration-300 hover:scale-105"
+              >
+                Войти
+              </router-link>
+              <router-link
+                to="/register"
+                class="relative px-6 py-2 bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600 text-white font-medium rounded-2xl hover:shadow-xl transform hover:-translate-y-0.5 transition-all duration-300 overflow-hidden group"
+              >
+                <span class="relative z-10">Регистрация</span>
+                <div class="absolute inset-0 bg-gradient-to-r from-purple-700 via-pink-700 to-rose-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+              </router-link>
+            </div>
+            
+            <!-- Mobile Auth Icon -->
+            <div class="md:hidden">
+              <router-link
+                to="/login"
+                class="w-10 h-10 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center text-white hover:from-purple-700 hover:to-pink-700 transition-all duration-300 hover:scale-110 shadow-lg"
+              >
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 5v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+              </router-link>
+            </div>
           </div>
         </div>
 
@@ -290,7 +310,7 @@
       >
         <div
           v-if="isSearchOpen"
-          class="md:hidden pb-4"
+          class="md:hidden pb-2"
           data-search
         >
           <div class="relative group transition-all duration-500 ease-out">
@@ -333,16 +353,16 @@
             >
               <div 
                 v-if="searchQuery"
-                class="absolute top-full left-0 right-0 mt-3 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 dark:border-slate-700/50 py-3 z-50 transition-all duration-500 ease-out"
+                class="absolute top-full left-0 right-0 mt-2 bg-white/95 dark:bg-slate-800/95 backdrop-blur-xl rounded-2xl shadow-2xl border border-gray-200/50 dark:border-slate-700/50 py-2 z-50 transition-all duration-500 ease-out"
               >
-                <div class="px-4 py-3 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-b border-gray-100 dark:border-slate-700">
+                <div class="px-3 py-2 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20 border-b border-gray-100 dark:border-slate-700">
                   <div class="flex items-center justify-between">
                     <p class="text-sm font-medium text-gray-900 dark:text-white">Результаты поиска</p>
                     <span class="text-xs text-gray-500 dark:text-gray-400">{{ searchResults.length }} найдено</span>
                   </div>
                 </div>
                 <div class="max-h-48 overflow-y-auto">
-                  <div v-if="isSearching" class="px-6 py-8 text-center">
+                  <div v-if="isSearching" class="px-4 py-6 text-center">
                     <div class="text-gray-500 dark:text-gray-400">
                       <div class="inline-flex items-center gap-3 mb-3">
                         <div class="w-6 h-6 border-2 border-purple-500 border-t-transparent rounded-full animate-spin"></div>
@@ -356,7 +376,7 @@
                     v-for="(product, index) in searchResults" 
                     :key="product.id" 
                     @click="selectSearchResult(product)"
-                    class="px-4 py-3 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 transition-all duration-300 cursor-pointer border-b border-gray-100 dark:border-slate-700 last:border-b-0 transform hover:scale-[1.02] hover:translate-x-1"
+                    class="px-3 py-2 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 transition-all duration-300 cursor-pointer border-b border-gray-100 dark:border-slate-700 last:border-b-0 transform hover:scale-[1.02] hover:translate-x-1"
                     :style="{ animationDelay: `${index * 100}ms` }"
                   >
                     <div class="flex items-center gap-3">
@@ -376,7 +396,7 @@
                       </div>
                     </div>
                   </div>
-                  <div v-else-if="searchQuery.length >= 2" class="px-6 py-8 text-center">
+                  <div v-else-if="searchQuery.length >= 2" class="px-4 py-6 text-center">
                     <div class="text-gray-500 dark:text-gray-400">
                       <div class="text-5xl mb-4 animate-bounce">🔍</div>
                       <p class="font-medium mb-2 text-gray-700 dark:text-gray-300">Ничего не найдено</p>
@@ -394,7 +414,7 @@
                 <div v-if="searchQuery.trim() && !isSearching" class="px-4 py-3 border-t border-gray-100 dark:border-slate-700 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-900/20 dark:to-pink-900/20">
                   <button 
                     @click="handleSearch"
-                    class="w-full flex items-center justify-center gap-2 px-4 py-3 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
+                    class="w-full flex items-center justify-center gap-2 px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl font-medium transition-all duration-300 transform hover:scale-105 hover:shadow-lg"
                   >
                     <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
@@ -419,15 +439,15 @@
       >
         <div
           v-if="isMobileMenuOpen"
-          class="md:hidden pb-4"
+          class="md:hidden pb-2"
           data-mobile-menu
         >
-          <div class="space-y-2">
+          <div class="space-y-1">
             <!-- Кнопка профиля для аутентифицированных пользователей -->
             <router-link
               v-if="isAuthenticated"
               :to="user?.role === 'seller' ? '/seller' : '/buyer'"
-              class="flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 rounded-xl transition-all duration-300"
+              class="flex items-center px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 rounded-xl transition-all duration-300"
               @click="closeMobileMenu"
             >
               <svg class="w-5 h-5 mr-3 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -440,7 +460,7 @@
             
             <router-link
               to="/popular"
-              class="flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 rounded-xl transition-all duration-300"
+              class="flex items-center px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 rounded-xl transition-all duration-300"
               @click="closeMobileMenu"
             >
               <svg class="w-5 h-5 mr-3 text-purple-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -450,7 +470,7 @@
             </router-link>
             <router-link
               to="/blog"
-              class="flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 rounded-xl transition-all duration-300"
+              class="flex items-center px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 rounded-xl transition-all duration-300"
               @click="closeMobileMenu"
             >
               <svg class="w-5 h-5 mr-3 text-pink-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -460,7 +480,7 @@
             </router-link>
             <router-link
               to="/support"
-              class="flex items-center px-4 py-3 text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 rounded-xl transition-all duration-300"
+              class="flex items-center px-3 py-2 text-gray-700 dark:text-gray-300 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 rounded-xl transition-all duration-300"
               @click="closeMobileMenu"
             >
               <svg class="w-5 h-5 mr-3 text-rose-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -468,6 +488,30 @@
               </svg>
               Поддержка
             </router-link>
+            
+            <!-- Mobile Auth Buttons -->
+            <div v-if="!isAuthenticated" class="pt-2 border-t border-gray-200 dark:border-slate-700">
+              <router-link
+                to="/login"
+                class="flex items-center px-3 py-2 text-purple-600 dark:text-purple-400 hover:bg-gradient-to-r hover:from-purple-50 hover:to-pink-50 dark:hover:from-purple-900/20 dark:hover:to-pink-900/20 rounded-xl transition-all duration-300"
+                @click="closeMobileMenu"
+              >
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 5v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
+                </svg>
+                Войти
+              </router-link>
+              <router-link
+                to="/register"
+                class="flex items-center px-3 py-2 bg-gradient-to-r from-purple-600 to-pink-600 text-white rounded-xl transition-all duration-300 hover:from-purple-700 hover:to-pink-700"
+                @click="closeMobileMenu"
+              >
+                <svg class="w-5 h-5 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z" />
+                </svg>
+                Регистрация
+              </router-link>
+            </div>
           </div>
         </div>
       </transition>

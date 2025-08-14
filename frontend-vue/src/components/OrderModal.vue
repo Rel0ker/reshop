@@ -25,20 +25,53 @@
       <!-- Order Form -->
       <form @submit.prevent="submitOrder" class="space-y-6">
         <div>
-          <label for="telegram_id" class="block text-gray-300 text-sm font-semibold mb-2">
-            Telegram ID для уведомлений
-            <span class="text-gray-500 text-xs">(например: 123456789)</span>
+          <label for="receipt_email" class="block text-gray-300 text-sm font-semibold mb-2">
+            Email для уведомлений
+            <span class="text-gray-500 text-xs">(для получения чека и статуса заказа)</span>
           </label>
-          <input
-            type="text"
-            id="telegram_id"
-            v-model="orderForm.telegram_id"
-            class="w-full px-4 py-3 bg-white/10 border border-white/20 rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300"
-            placeholder="123456789"
-            required
-          />
+          <div class="relative">
+            <input
+              type="email"
+              id="receipt_email"
+              v-model="orderForm.receipt_email"
+              :class="[
+                'w-full px-4 py-3 pr-12 bg-white/10 border rounded-xl text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all duration-300',
+                isEmailFromAccount ? 'border-green-500/50' : 'border-white/20'
+              ]"
+              placeholder="your@email.com"
+              required
+            />
+            <!-- Кнопка сброса к email из аккаунта -->
+            <button
+              v-if="auth.user?.email && !isEmailFromAccount"
+              @click="resetEmailToAccount"
+              type="button"
+              class="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-green-400 hover:text-green-300 transition-all duration-200 hover:scale-110"
+              title="Вернуть email из аккаунта"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
+            <!-- Индикатор, что email из аккаунта -->
+            <div
+              v-if="isEmailFromAccount"
+              class="absolute right-3 top-1/2 transform -translate-y-1/2 p-1 text-green-400"
+              title="Email из вашего аккаунта"
+            >
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+              </svg>
+            </div>
+          </div>
           <p class="text-xs text-gray-400 mt-1">
-            💡 Как получить Telegram ID? Напишите боту @re_shop_notify_bot команду /start
+            💡 На этот email будут отправляться уведомления о статусе заказа
+            <span v-if="isEmailFromAccount" class="block mt-1 text-green-400">
+              ✅ Используется email из вашего аккаунта
+            </span>
+            <span v-else-if="auth.user?.email" class="block mt-1 text-blue-400">
+              🔄 Нажмите на кнопку ↻ чтобы использовать email из аккаунта
+            </span>
           </p>
         </div>
 
@@ -70,15 +103,31 @@
           ></textarea>
         </div>
 
-        <!-- Submit Button -->
-        <button
-          type="submit"
-          :disabled="isSubmitting"
-          class="w-full bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
-        >
-          <span v-if="!isSubmitting" class="flex items-center justify-center gap-2">
-            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+        <!-- Action Buttons -->
+        <div class="flex gap-3">
+          <!-- Reset Button -->
+          <button
+            type="button"
+            @click="resetForm"
+            class="flex-1 bg-gray-600 hover:bg-gray-700 text-white font-medium py-4 px-6 rounded-xl focus:outline-none focus:ring-2 focus:ring-gray-500 transition-all duration-300 transform hover:scale-105"
+          >
+            <span class="flex items-center justify-center gap-2">
+              <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+              Сбросить
+            </span>
+          </button>
+
+          <!-- Submit Button -->
+          <button
+            type="submit"
+            :disabled="isSubmitting"
+            class="flex-1 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white font-bold py-4 px-6 rounded-xl focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all duration-300 transform hover:scale-105 disabled:opacity-50 disabled:cursor-not-allowed disabled:transform-none"
+          >
+            <span v-if="!isSubmitting" class="flex items-center justify-center gap-2">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
             </svg>
             Оформить заказ
           </span>
@@ -87,13 +136,14 @@
             Оформляем...
           </span>
         </button>
+        </div>
       </form>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { defineProps, defineEmits, ref, reactive, watch } from 'vue';
+import { defineProps, defineEmits, ref, reactive, watch, computed } from 'vue';
 import { useRouter } from 'vue-router';
 import { api } from '../api';
 import { useAuth } from '../store';
@@ -122,9 +172,49 @@ const auth = useAuth();
 const router = useRouter();
 
 const orderForm = reactive({
-  telegram_id: '',
+  receipt_email: '',
   quantity: 1,
   comment: '',
+});
+
+// Автоподстановка email из аккаунта пользователя
+watch(() => props.isVisible, (newValue) => {
+  if (newValue && auth.user?.email) {
+    // Если поле пустое или содержит старый email, заполняем новым
+    if (!orderForm.receipt_email || orderForm.receipt_email !== auth.user.email) {
+      orderForm.receipt_email = auth.user.email;
+    }
+  }
+});
+
+// Также следим за изменением пользователя
+watch(() => auth.user?.email, (newEmail) => {
+  if (newEmail && props.isVisible) {
+    orderForm.receipt_email = newEmail;
+  }
+});
+
+// Функция для сброса email к значению из аккаунта
+const resetEmailToAccount = () => {
+  if (auth.user?.email) {
+    orderForm.receipt_email = auth.user.email;
+  }
+};
+
+// Функция для полного сброса формы
+const resetForm = () => {
+  if (auth.user?.email) {
+    orderForm.receipt_email = auth.user.email;
+  } else {
+    orderForm.receipt_email = '';
+  }
+  orderForm.quantity = 1;
+  orderForm.comment = '';
+};
+
+// Проверяем, совпадает ли текущий email с email из аккаунта
+const isEmailFromAccount = computed(() => {
+  return auth.user?.email && orderForm.receipt_email === auth.user.email;
 });
 
 const isSubmitting = ref(false);
@@ -132,11 +222,28 @@ const isSubmitting = ref(false);
 
 
 const close = () => {
+  // Сбрасываем форму при закрытии
+  orderForm.quantity = 1;
+  orderForm.comment = '';
+  // Email не сбрасываем, чтобы сохранить пользовательский ввод
   emit('close');
 };
 
 const submitOrder = async () => {
   if (!props.product) return;
+  
+  // Проверяем, что email заполнен и валиден
+  if (!orderForm.receipt_email.trim()) {
+    alert('Пожалуйста, укажите email для получения уведомлений');
+    return;
+  }
+  
+  // Простая валидация email
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(orderForm.receipt_email.trim())) {
+    alert('Пожалуйста, укажите корректный email адрес');
+    return;
+  }
 
   isSubmitting.value = true;
   
@@ -145,7 +252,7 @@ const submitOrder = async () => {
       product: props.product.id,
       quantity: orderForm.quantity,
       comment: orderForm.comment,
-      telegram_id: orderForm.telegram_id,
+      receipt_email: orderForm.receipt_email,
     };
     
     console.log('Sending payment request to /payments/ with data:', paymentData);

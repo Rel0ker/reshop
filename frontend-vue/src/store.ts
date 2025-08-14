@@ -1,9 +1,28 @@
 import { defineStore } from "pinia";
 
+interface User {
+  id: string;
+  email: string;
+  username: string;
+  first_name: string;
+  last_name: string;
+  role: string;
+  avatar?: string;
+  bio?: string;
+  phone?: string;
+  website?: string;
+  location?: string;
+  date_joined: string;
+  average_rating?: number;
+  total_products?: number;
+  total_orders?: number;
+}
+
 interface State {
   token: string | null;
   role: string | null;
-  userId: number | null;
+  userId: string | null;
+  user: User | null;
 }
 
 export const useAuth = defineStore("auth", {
@@ -22,7 +41,7 @@ export const useAuth = defineStore("auth", {
         console.log("Декодированный payload:", payload);
         
         this.token = token;
-        this.userId = payload.user_id;
+        this.userId = payload.user_id?.toString() || null;
         this.role = payload.role;
         
         localStorage.setItem("access_token", token);
@@ -38,6 +57,18 @@ export const useAuth = defineStore("auth", {
     setRole(role: string) {
       this.role = role;
       localStorage.setItem("role", role);
+    },
+
+    setUser(user: User) {
+      this.user = user;
+      this.userId = user.id;
+      this.role = user.role;
+    },
+
+    updateUser(userData: Partial<User>) {
+      if (this.user) {
+        this.user = { ...this.user, ...userData };
+      }
     },
 
 
@@ -59,7 +90,7 @@ export const useAuth = defineStore("auth", {
       if (token) {
         this.token = token;
         this.role = role;
-        this.userId = userId ? parseInt(userId) : null;
+        this.userId = userId;
       }
     },
   },
