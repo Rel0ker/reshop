@@ -16,12 +16,8 @@ SECRET_KEY = os.environ.get('SECRET_KEY', 'your-secret-key-here-change-in-produc
 # Production database configuration
 DATABASES = {
     "default": {
-        "ENGINE": "django.db.backends.postgresql",
-        "NAME": os.environ.get('POSTGRES_DB', 'reshop'),
-        "USER": os.environ.get('POSTGRES_USER', 'reshop_user'),
-        "PASSWORD": os.environ.get('POSTGRES_PASSWORD', 'your_secure_password_here'),
-        "HOST": os.environ.get('POSTGRES_HOST', 'db'),
-        "PORT": os.environ.get('POSTGRES_PORT', '5432'),
+        "ENGINE": "django.db.backends.sqlite3",   # ← драйвер SQLite
+        "NAME": BASE_DIR / "db.sqlite3",          # файл-БД
     }
 }
 
