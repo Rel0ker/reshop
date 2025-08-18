@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vue-tsc -b && vite build",
-    "preview": "vite preview"
+    "build:prod": "vue-tsc -b && vite build --config vite.config.production.ts",
+    "preview": "vite preview",
+    "preview:prod": "vite preview --config vite.config.production.ts"
   },
   "dependencies": {
     "@tailwindcss/typography": "^0.5.16",
