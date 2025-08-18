@@ -1,0 +1,98 @@
+# Production Makefile for ReShop
+
+.PHONY: help build deploy start stop restart logs clean backup migrate collectstatic
+
+help: ## Показать справку
+	@echo "Доступные команды:"
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
+
+build: ## Собрать все сервисы для продакшена
+	@echo "🔨 Сборка frontend..."
+	cd frontend-vue && npm ci && npm run build:prod && cd ..
+	@echo "🐳 Сборка Docker образов..."
+	docker-compose -f docker-compose.production.yml build --no-cache
+
+deploy: ## Полное развертывание в продакшене
+	@echo "🚀 Развертывание в продакшене..."
+	./deploy.sh
+
+start: ## Запустить продакшен сервисы
+	@echo "▶️ Запуск продакшен сервисов..."
+	docker-compose -f docker-compose.production.yml up -d
+
+stop: ## Остановить продакшен сервисы
+	@echo "⏹️ Остановка продакшен сервисов..."
+	docker-compose -f docker-compose.production.yml down
+
+restart: ## Перезапустить продакшен сервисы
+	@echo "🔄 Перезапуск продакшен сервисов..."
+	docker-compose -f docker-compose.production.yml restart
+
+logs: ## Показать логи всех сервисов
+	@echo "📋 Логи сервисов..."
+	docker-compose -f docker-compose.production.yml logs -f
+
+logs-backend: ## Показать логи backend
+	@echo "📋 Логи backend..."
+	docker-compose -f docker-compose.production.yml logs -f backend
+
+logs-frontend: ## Показать логи frontend
+	@echo "📋 Логи frontend..."
+	docker-compose -f docker-compose.production.yml logs -f frontend
+
+logs-nginx: ## Показать логи nginx
+	@echo "📋 Логи nginx..."
+	docker-compose -f docker-compose.production.yml logs -f nginx
+
+status: ## Показать статус сервисов
+	@echo "📊 Статус сервисов..."
+	docker-compose -f docker-compose.production.yml ps
+
+clean: ## Очистить Docker ресурсы
+	@echo "🧹 Очистка Docker ресурсов..."
+	docker-compose -f docker-compose.production.yml down -v
+	docker system prune -f
+	docker volume prune -f
+
+backup: ## Создать бэкап базы данных
+	@echo "💾 Создание бэкапа базы данных..."
+	@mkdir -p backups
+	docker-compose -f docker-compose.production.yml exec -T db pg_dump -U reshop_user reshop > backups/backup_$(shell date +%Y%m%d_%H%M%S).sql
+
+restore: ## Восстановить базу данных из бэкапа (укажите FILE=backup_file.sql)
+	@if [ -z "$(FILE)" ]; then echo "❌ Укажите файл бэкапа: make restore FILE=backup_file.sql"; exit 1; fi
+	@echo "📥 Восстановление базы данных из $(FILE)..."
+	docker-compose -f docker-compose.production.yml exec -T db psql -U reshop_user -d reshop < backups/$(FILE)
+
+migrate: ## Применить миграции базы данных
+	@echo "🗄️ Применение миграций..."
+	docker-compose -f docker-compose.production.yml exec backend python manage.py migrate
+
+collectstatic: ## Собрать статические файлы
+	@echo "📁 Сбор статических файлов..."
+	docker-compose -f docker-compose.production.yml exec backend python manage.py collectstatic --noinput
+
+createsuperuser: ## Создать суперпользователя
+	@echo "👤 Создание суперпользователя..."
+	docker-compose -f docker-compose.production.yml exec backend python manage.py createsuperuser
+
+shell: ## Открыть Django shell
+	@echo "🐍 Открытие Django shell..."
+	docker-compose -f docker-compose.production.yml exec backend python manage.py shell
+
+health-check: ## Проверить здоровье сервисов
+	@echo "🏥 Проверка здоровья сервисов..."
+	@curl -f http://localhost/health > /dev/null 2>&1 && echo "✅ Frontend: OK" || echo "❌ Frontend: FAILED"
+	@curl -f http://localhost:8000/api/ > /dev/null 2>&1 && echo "✅ Backend: OK" || echo "❌ Backend: FAILED"
+
+update: ## Обновить приложение
+	@echo "🔄 Обновление приложения..."
+	git pull origin main
+	$(MAKE) build
+	$(MAKE) restart
+	$(MAKE) migrate
+	$(MAKE) collectstatic
+
+monitor: ## Мониторинг в реальном времени
+	@echo "📊 Мониторинг сервисов..."
+	watch -n 5 'docker-compose -f docker-compose.production.yml ps'

@@ -1,0 +1,58 @@
+# Production specific ignores
+
+# Environment files
+.env.production
+env.production
+
+# SSL certificates
+ssl/
+*.pem
+*.key
+*.crt
+
+# Logs
+*.log
+logs/
+production.log
+
+# Database
+*.sqlite3
+*.db
+
+# Backups
+backups/
+*.sql
+
+# Media files
+media/
+uploads/
+
+# Static files
+static/
+staticfiles/
+
+# Node modules (if building locally)
+frontend-vue/node_modules/
+
+# Build artifacts
+frontend-vue/dist/
+frontend-vue/build/
+
+# Docker volumes
+postgres_data/
+redis_data/
+
+# IDE files
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
