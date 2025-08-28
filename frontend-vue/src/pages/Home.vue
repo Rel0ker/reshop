@@ -10,9 +10,9 @@
           </div>
           
           <h1 class="text-5xl md:text-7xl font-bold text-gray-900 dark:text-white mb-6 leading-tight animate-fade-in animation-delay-200">
-            Новый! Быстрый!
+            Новый. Быстрый.
             <span class="text-transparent bg-clip-text bg-gradient-to-r from-purple-600 via-pink-600 to-rose-600">
-              Безопасный!
+              Безопасный.
             </span>
           </h1>
           

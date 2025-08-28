@@ -46,7 +46,7 @@ services:
   frontend:
     build:
       context: ./frontend-vue
-      dockerfile: Dockerfile.production
+      dockerfile: Dockerfile.simple
     ports:
       - "3000:3000"
     environment:
